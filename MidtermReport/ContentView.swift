@@ -177,6 +177,19 @@ struct ContentView: View {
                         .progressViewStyle(CircularProgressViewStyle(tint: textColor))
                 }
                 .id(w.current.condition.icon)
+                
+                // 分隔線
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.white.opacity(0),
+                        Color.white.opacity(0.9),
+                        Color.white.opacity(0)
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(height: 1)
+                .padding(.vertical, 20) // 相當於 my-10
             }
         }
         .padding()
