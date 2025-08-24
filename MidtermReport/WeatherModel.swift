@@ -48,7 +48,11 @@ struct ForecastDay: Codable {
 }
 
 struct ForecastDayDetail: Codable {
+    let maxtemp_c: Double
+    let mintemp_c: Double
+    let avgtemp_c: Double?
     let totalprecip_mm: Double
+    let condition: Condition
 }
 
 struct Astro: Codable {

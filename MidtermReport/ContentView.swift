@@ -84,6 +84,16 @@ struct ContentView: View {
         }
     }
     
+    func weekdayString(from dateStr: String) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            formatter.locale = Locale(identifier: "zh_TW")
+            guard let date = formatter.date(from: dateStr) else { return "" }
+            let chineseWeekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+            let weekday = Calendar.current.component(.weekday, from: date)
+            return chineseWeekdays[weekday-1]
+        }
+    
     var body: some View {
         ZStack {
             backgroundGradient.ignoresSafeArea()
@@ -159,6 +169,7 @@ struct ContentView: View {
                         .onTapGesture { showUVIcon.toggle() }
                 }
                 
+                // 氣溫圖示
                 AsyncImage(url: URL(string: getLargerIconURL(from: w.current.condition.icon))) { image in
                     image
                         .resizable()
@@ -173,96 +184,122 @@ struct ContentView: View {
                 }
                 .id(w.current.condition.icon)
                 
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.white.opacity(0),
-                        Color.white.opacity(0.9),
-                        Color.white.opacity(0)
-                    ]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .frame(height: 1)
-                .padding(.vertical, 20)
-                
-                Button("更多資訊") {
-                    withAnimation {
-                        showMoreInfo = true
+                // --- 未來三日天氣預報 ---
+                                if let forecasts = w.forecast?.forecastday.prefix(3) {
+                                    VStack(spacing: 8) {
+                                        ForEach(Array(forecasts.enumerated()), id: \.element.date) { index, day in
+                                            HStack {
+                                                Text(weekdayString(from: day.date))
+                                                    .foregroundColor(textColor)
+                                                    .frame(width: 56, alignment: .leading)
+                                                AsyncImage(url: URL(string: "https:\(day.day.condition.icon)")) { image in
+                                                    image.resizable().frame(width: 32, height: 32)
+                                                } placeholder: {
+                                                    Image(systemName: "cloud")
+                                                        .resizable()
+                                                        .frame(width: 32, height: 32)
+                                                        .opacity(0.5)
+                                                }
+                                                Spacer()
+                                                Text("\(Int(day.day.mintemp_c)) / \(Int(day.day.maxtemp_c))")
+                                                    .foregroundColor(textColor)
+                                                    .frame(width: 56, alignment: .trailing)
+                                            }
+                                        }
+                                    }
+                                    .padding(.vertical, 8)
+                                }
+                                // --- 分隔線 ---
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.white.opacity(0),
+                                        Color.white.opacity(0.9),
+                                        Color.white.opacity(0)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .frame(height: 1)
+                                .padding(.vertical, 20)
+                                
+                                Button("更多資訊") {
+                                    withAnimation {
+                                        showMoreInfo = true
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                    
+                    // 第二頁內容
+                    var moreInfoView: some View {
+                        VStack(spacing: 24) {
+                            Text("更多天氣資訊")
+                                .font(.title)
+                                .foregroundColor(textColor)
+                            if let w = weather {
+                                Text("風速：\(w.current.wind_kph, specifier: "%.1f") kph")
+                                    .foregroundColor(textColor)
+                                let rainMM = w.forecast?.forecastday.first?.day.totalprecip_mm ?? w.current.precip_mm ?? 0
+                                Text("雨量：\(rainMM, specifier: "%.1f") mm")
+                                    .foregroundColor(textColor)
+                                Text("風向：\(w.current.wind_dir)")
+                                    .foregroundColor(textColor)
+                                if let feelslikeC = w.current.feelslike_c {
+                                    let feelslike = showFahrenheit ? (feelslikeC * 9/5 + 32) : feelslikeC
+                                    Text("體感溫度：\(feelslike, specifier: "%.1f")\(showFahrenheit ? "°F" : "°C")")
+                                        .foregroundColor(textColor)
+                                        .onTapGesture {
+                                            showFahrenheit.toggle()
+                                        }
+                                }
+                                if let astro = w.forecast?.forecastday.first?.astro {
+                                    Text("日出：\(astro.sunrise)")
+                                        .foregroundColor(textColor)
+                                    Text("日落：\(astro.sunset)")
+                                        .foregroundColor(textColor)
+                                }
+                            }
+                            Button("返回") {
+                                withAnimation {
+                                    showMoreInfo = false
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                    
+                    // 搖動動畫
+                    func startShaking() {
+                        shakeAngle = -18
+                        if !isShaking {
+                            isShaking = true
+                            withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                                shakeAngle = 18
+                            }
+                        }
                     }
                 }
-            }
-        }
-        .padding()
-    }
-    
-    // 第二頁內容
-    var moreInfoView: some View {
-        VStack(spacing: 24) {
-            Text("更多天氣資訊")
-                .font(.title)
-                .foregroundColor(textColor)
-            if let w = weather {
-                Text("風速：\(w.current.wind_kph, specifier: "%.1f") kph")
-                    .foregroundColor(textColor)
-                let rainMM = w.forecast?.forecastday.first?.day.totalprecip_mm ?? w.current.precip_mm ?? 0
-                Text("雨量：\(rainMM, specifier: "%.1f") mm")
-                    .foregroundColor(textColor)
-                Text("風向：\(w.current.wind_dir)")
-                    .foregroundColor(textColor)
-                if let feelslikeC = w.current.feelslike_c {
-                    let feelslike = showFahrenheit ? (feelslikeC * 9/5 + 32) : feelslikeC
-                    Text("體感溫度：\(feelslike, specifier: "%.1f")\(showFahrenheit ? "°F" : "°C")")
-                        .foregroundColor(textColor)
-                        .onTapGesture {
-                            showFahrenheit.toggle()
+
+                // 卡片翻轉效果元件
+                struct FlipView<Front: View, Back: View>: View {
+                    @Binding var isFlipped: Bool
+                    let front: () -> Front
+                    let back: () -> Back
+                    
+                    var body: some View {
+                        ZStack {
+                            front()
+                                .opacity(isFlipped ? 0 : 1)
+                                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+                            back()
+                                .opacity(isFlipped ? 1 : 0)
+                                .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
                         }
+                    }
                 }
-                if let astro = w.forecast?.forecastday.first?.astro {
-                    Text("日出：\(astro.sunrise)")
-                        .foregroundColor(textColor)
-                    Text("日落：\(astro.sunset)")
-                        .foregroundColor(textColor)
-                }
-            }
-            Button("返回") {
-                withAnimation {
-                    showMoreInfo = false
-                }
-            }
-        }
-        .padding()
-    }
-    
-    // 搖動動畫
-    func startShaking() {
-        shakeAngle = -18
-        if !isShaking {
-            isShaking = true
-            withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                shakeAngle = 18
-            }
-        }
-    }
-}
 
-// 卡片翻轉效果元件
-struct FlipView<Front: View, Back: View>: View {
-    @Binding var isFlipped: Bool
-    let front: () -> Front
-    let back: () -> Back
-    
-    var body: some View {
-        ZStack {
-            front()
-                .opacity(isFlipped ? 0 : 1)
-                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-            back()
-                .opacity(isFlipped ? 1 : 0)
-                .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-        }
-    }
-}
-
-#Preview {
-    ContentView()
-}
+                #Preview {
+                    ContentView()
+                }
