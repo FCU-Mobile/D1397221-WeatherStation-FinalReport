@@ -47,7 +47,7 @@ struct SunMoonStarBackground: View {
             .onAppear {
                 // 每隔0.05秒推進時間
                 Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-                    progress += 0.0007 // 這個數字控制速度，越大越快
+                    progress += 0.0018 // 這個數字控制速度，越大越快
                     if progress > 1.0 { progress = 0; starSeed += 1 }
                 }
             }
@@ -134,7 +134,7 @@ struct StarField: View {
     let progress: Double
     
     var body: some View {
-        let starCount = 30
+        let starCount = 100
         ForEach(0..<starCount, id: \.self) { idx in
             var rng = SeededRandomNumberGenerator(seed: seed + UInt64(idx*17))
             let x = CGFloat.random(in: 0...width, using: &rng)

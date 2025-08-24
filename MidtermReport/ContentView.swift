@@ -251,7 +251,7 @@ struct ContentView: View {
                     ("sunrise.fill", sunrise, "日出時間", false),
                     ("sunset.fill", sunset, "日落", false)
                 ]
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 22) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 22) {
                     ForEach(0..<infos.count, id: \.self) { i in
                         let info = infos[i]
                         WeatherInfoItem(icon: info.icon, value: info.value, label: info.label, textColor: textColor)
