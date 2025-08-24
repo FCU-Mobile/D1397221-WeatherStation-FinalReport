@@ -199,14 +199,23 @@ struct ContentView: View {
                                         .opacity(0.5)
                                 }
                                 Spacer()
-                                Text("\(Int(day.day.mintemp_c)) / \(Int(day.day.maxtemp_c))")
+                                // 這裡開始改
+                                let minTemp = showFahrenheit ? (day.day.mintemp_c * 9/5 + 32) : day.day.mintemp_c
+                                let maxTemp = showFahrenheit ? (day.day.maxtemp_c * 9/5 + 32) : day.day.maxtemp_c
+                                let unit = showFahrenheit ? "°F" : "°C"
+                                Text("\(Int(minTemp)) / \(Int(maxTemp))\(unit)")
                                     .foregroundColor(textColor)
-                                    .frame(width: 56, alignment: .trailing)
+                                    .frame(width: 80, alignment: .trailing) // 寬度略大一點比較保險
+                                    .onTapGesture {
+                                        showFahrenheit.toggle()
+                                    }
                             }
                         }
                     }
                     .padding(.vertical, 8)
                 }
+                
+                
                 // --- 分隔線 ---
                 LinearGradient(
                     gradient: Gradient(colors: [
