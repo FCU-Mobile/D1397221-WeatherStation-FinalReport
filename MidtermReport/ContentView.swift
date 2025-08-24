@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var isShaking = false
     @State private var showUVIcon = false
     @State private var showMoreInfo = false
+    @State private var shakeKey = UUID()
     let service = WeatherService()
     
     // 將 WeatherAPI 圖標 URL 轉換為較大尺寸
@@ -113,7 +114,7 @@ struct ContentView: View {
             TextField("輸入城市", text: $city)
                 .padding()
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-            
+
             Button("查詢天氣") {
                 isLoading = true
                 service.fetchWeather(city: city) { result in
@@ -121,7 +122,8 @@ struct ContentView: View {
                         weather = result
                         isLoading = false
                         isShaking = false
-                        shakeAngle = 0
+                        shakeAngle = -18   // 每次查詢直接重設
+                        shakeKey = UUID()  // 觸發 AsyncImage 重新 onAppear
                     }
                 }
             }
@@ -182,7 +184,7 @@ struct ContentView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: textColor))
                 }
-                .id(w.current.condition.icon)
+                .id(shakeKey)   // 用唯一 key 強制刷新
                 
                 // --- 未來三日天氣預報 ---
                                 if let forecasts = w.forecast?.forecastday.prefix(3) {
@@ -220,7 +222,7 @@ struct ContentView: View {
                                     endPoint: .trailing
                                 )
                                 .frame(height: 1)
-                                .padding(.vertical, 20)
+
                                 
                                 Button("更多資訊") {
                                     withAnimation {
@@ -272,11 +274,11 @@ struct ContentView: View {
                     
                     // 搖動動畫
                     func startShaking() {
-                        shakeAngle = -18
+                        shakeAngle = -20
                         if !isShaking {
                             isShaking = true
                             withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                                shakeAngle = 18
+                                shakeAngle = 20
                             }
                         }
                     }
