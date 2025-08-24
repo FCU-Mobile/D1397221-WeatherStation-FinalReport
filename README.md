@@ -1,4 +1,4 @@
-# 行動 APP 天氣查詢專案（MidtermReport）
+# 行動 APP 天氣查詢專案（FinalReport）
 
 本專案為 IECS1109 行動 APP 開發課程期中報告作品，採用 SwiftUI 實作，提供即時天氣查詢、顯示地點資訊、濕度、UV 指數與直覺圖示等功能。
 
