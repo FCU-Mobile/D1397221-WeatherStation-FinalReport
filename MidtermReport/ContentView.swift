@@ -110,6 +110,8 @@ struct ContentView: View {
             TextField("輸入城市", text: $city)
                 .padding()
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .offset(y: weather == nil ? -15 : 0)
+
 
             Button("查詢天氣") {
                 isLoading = true
@@ -124,6 +126,7 @@ struct ContentView: View {
                 }
             }
             .padding()
+            .offset(y: weather == nil ? 10 : 0)
             
             if isLoading {
                 ProgressView()
@@ -303,11 +306,11 @@ struct ContentView: View {
     
     // 搖動動畫
     func startShaking() {
-        shakeAngle = -20
+        shakeAngle = -25
         if !isShaking {
             isShaking = true
-            withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                shakeAngle = 20
+            withAnimation(Animation.easeInOut(duration: 0.75).repeatForever(autoreverses: true)) {
+                shakeAngle = 26
             }
         }
     }
