@@ -209,9 +209,13 @@ struct ContentView: View {
                     .foregroundColor(textColor)
                 Text("風向：\(w.current.wind_dir)")
                     .foregroundColor(textColor)
-                if let feelslike = w.current.feelslike_c {
-                    Text("體感溫度：\(feelslike, specifier: "%.1f")°C")
+                if let feelslikeC = w.current.feelslike_c {
+                    let feelslike = showFahrenheit ? (feelslikeC * 9/5 + 32) : feelslikeC
+                    Text("體感溫度：\(feelslike, specifier: "%.1f")\(showFahrenheit ? "°F" : "°C")")
                         .foregroundColor(textColor)
+                        .onTapGesture {
+                            showFahrenheit.toggle()
+                        }
                 }
                 if let astro = w.forecast?.forecastday.first?.astro {
                     Text("日出：\(astro.sunrise)")
