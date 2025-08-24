@@ -6,12 +6,13 @@
 
 ```
 MidtermReport/
-├── ContentView.swift         # 主畫面，負責 UI 與互動邏輯
-├── LocalTimeView.swift       # 地方時間顯示元件
-├── WeatherService.swift      # 天氣 API 請求服務
-├── WeatherModel.swift        # 天氣資料模型
-├── UVIndexIcon.swift         # 紫外線指數分級圖示
-├── MidtermReportApp.swift    # App 進入點
+├── ContentView.swift             # 主畫面，負責 UI 與互動邏輯
+├── LocalTimeView.swift           # 地方時間顯示元件
+├── WeatherService.swift          # 天氣 API 請求服務
+├── WeatherModel.swift            # 天氣資料模型
+├── UVIndexIcon.swift             # 紫外線指數分級圖示
+├── SunMoonStarBackground.swift   # 背景元件，模擬一整天太陽、月亮、星星的動態變化
+├── MidtermReportApp.swift        # App 進入點
 MidtermReportTests/
 └── MidtermReportTests.swift  # 單元測試（範例）
 MidtermReportUITests/
@@ -32,12 +33,15 @@ MidtermReportUITests/
   - 濕度
   - 紫外線指數（UV）：可點擊切換數值與分級顏色圓形圖示
   - 天氣狀態圖標，圖標支援晃動動畫效果
+  - 還有近三日的氣象預報，包括預測的最低溫及最高溫
+  - 更多資訊還提供風速、雨量、風向、體感溫度、日出時間及日落時間
 
 ### 2. 介面特色
 
-- 背景漸層色依據目前天氣時段（白天/夜晚）自動切換。
+- 查詢的首頁帶有日象與月象的星軌動畫
+- 背景漸層色依據目前天氣時段（白天/夜晚）自動切換
 - 文字顏色根據查詢狀態自動調整。
-- 查詢過程中會顯示載入動畫（ProgressView）。
+- 查詢過程中會顯示載入動畫（ProgressView）
 
 ### 3. API 與資料模型
 
@@ -63,6 +67,5 @@ MidtermReportUITests/
 ![畫面預覽](Screenshot/3.png)
 ![畫面預覽](Screenshot/4.png)
 ![畫面預覽](Screenshot/5.png)
-![畫面預覽](Screenshot/6.png)
-![畫面預覽](Screenshot/7.png)
+
 
