@@ -37,18 +37,9 @@ struct ContentView: View {
         return true
     }
     
-    // 背景漸層
+    // 靜態背景漸層（非 weather==nil 時用）
     private var backgroundGradient: LinearGradient {
-        if weather == nil {
-            return LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0xf8/255.0, green: 0xfa/255.0, blue: 0xfc/255.0),
-                    Color(red: 0xf8/255.0, green: 0xfa/255.0, blue: 0xfc/255.0)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        } else if isDaytime {
+        if isDaytime {
             return LinearGradient(
                 gradient: Gradient(colors: [
                     Color(red: 0x8e/255.0, green: 0xc5/255.0, blue: 0xfc/255.0),
@@ -86,18 +77,23 @@ struct ContentView: View {
     }
     
     func weekdayString(from dateStr: String) -> String {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            formatter.locale = Locale(identifier: "zh_TW")
-            guard let date = formatter.date(from: dateStr) else { return "" }
-            let chineseWeekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
-            let weekday = Calendar.current.component(.weekday, from: date)
-            return chineseWeekdays[weekday-1]
-        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "zh_TW")
+        guard let date = formatter.date(from: dateStr) else { return "" }
+        let chineseWeekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
+        let weekday = Calendar.current.component(.weekday, from: date)
+        return chineseWeekdays[weekday-1]
+    }
     
     var body: some View {
         ZStack {
-            backgroundGradient.ignoresSafeArea()
+            if weather == nil {
+                // 呼叫SunMoonStarBackground程式
+                SunMoonStarBackground()
+            } else {
+                backgroundGradient.ignoresSafeArea()
+            }
             FlipView(
                 isFlipped: $showMoreInfo,
                 front: { mainInfoView },
@@ -187,53 +183,52 @@ struct ContentView: View {
                 .id(shakeKey)   // 用唯一 key 強制刷新
                 
                 // --- 未來三日天氣預報 ---
-                                if let forecasts = w.forecast?.forecastday.prefix(3) {
-                                    VStack(spacing: 8) {
-                                        ForEach(Array(forecasts.enumerated()), id: \.element.date) { index, day in
-                                            HStack {
-                                                Text(weekdayString(from: day.date))
-                                                    .foregroundColor(textColor)
-                                                    .frame(width: 56, alignment: .leading)
-                                                AsyncImage(url: URL(string: "https:\(day.day.condition.icon)")) { image in
-                                                    image.resizable().frame(width: 32, height: 32)
-                                                } placeholder: {
-                                                    Image(systemName: "cloud")
-                                                        .resizable()
-                                                        .frame(width: 32, height: 32)
-                                                        .opacity(0.5)
-                                                }
-                                                Spacer()
-                                                Text("\(Int(day.day.mintemp_c)) / \(Int(day.day.maxtemp_c))")
-                                                    .foregroundColor(textColor)
-                                                    .frame(width: 56, alignment: .trailing)
-                                            }
-                                        }
-                                    }
-                                    .padding(.vertical, 8)
+                if let forecasts = w.forecast?.forecastday.prefix(3) {
+                    VStack(spacing: 8) {
+                        ForEach(Array(forecasts.enumerated()), id: \.element.date) { index, day in
+                            HStack {
+                                Text(weekdayString(from: day.date))
+                                    .foregroundColor(textColor)
+                                    .frame(width: 56, alignment: .leading)
+                                AsyncImage(url: URL(string: "https:\(day.day.condition.icon)")) { image in
+                                    image.resizable().frame(width: 32, height: 32)
+                                } placeholder: {
+                                    Image(systemName: "cloud")
+                                        .resizable()
+                                        .frame(width: 32, height: 32)
+                                        .opacity(0.5)
                                 }
-                                // --- 分隔線 ---
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.white.opacity(0),
-                                        Color.white.opacity(0.9),
-                                        Color.white.opacity(0)
-                                    ]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .frame(height: 1)
-
-                                
-                                Button("更多資訊") {
-                                    withAnimation {
-                                        showMoreInfo = true
-                                    }
-                                }
+                                Spacer()
+                                Text("\(Int(day.day.mintemp_c)) / \(Int(day.day.maxtemp_c))")
+                                    .foregroundColor(textColor)
+                                    .frame(width: 56, alignment: .trailing)
                             }
                         }
-                        .padding()
                     }
-                    
+                    .padding(.vertical, 8)
+                }
+                // --- 分隔線 ---
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.white.opacity(0),
+                        Color.white.opacity(0.9),
+                        Color.white.opacity(0)
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(height: 1)
+                
+                Button("更多資訊") {
+                    withAnimation {
+                        showMoreInfo = true
+                    }
+                }
+            }
+        }
+        .padding()
+    }
+    
     // 第二頁內容
     var moreInfoView: some View {
         VStack(spacing: 24) {
@@ -296,37 +291,39 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, minHeight: 55)
         }
     }
-                    
-                    // 搖動動畫
-                    func startShaking() {
-                        shakeAngle = -20
-                        if !isShaking {
-                            isShaking = true
-                            withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                                shakeAngle = 20
-                            }
-                        }
-                    }
-                }
+    
+    // 搖動動畫
+    func startShaking() {
+        shakeAngle = -20
+        if !isShaking {
+            isShaking = true
+            withAnimation(Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                shakeAngle = 20
+            }
+        }
+    }
+}
 
-                // 卡片翻轉效果元件
-                struct FlipView<Front: View, Back: View>: View {
-                    @Binding var isFlipped: Bool
-                    let front: () -> Front
-                    let back: () -> Back
-                    
-                    var body: some View {
-                        ZStack {
-                            front()
-                                .opacity(isFlipped ? 0 : 1)
-                                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-                            back()
-                                .opacity(isFlipped ? 1 : 0)
-                                .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
-                        }
-                    }
-                }
+// 卡片翻轉效果元件
+struct FlipView<Front: View, Back: View>: View {
+    @Binding var isFlipped: Bool
+    let front: () -> Front
+    let back: () -> Back
+    
+    var body: some View {
+        ZStack {
+            front()
+                .opacity(isFlipped ? 0 : 1)
+                .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+            back()
+                .opacity(isFlipped ? 1 : 0)
+                .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
+        }
+    }
+}
 
-                #Preview {
-                    ContentView()
-                }
+
+
+#Preview {
+    ContentView()
+}
