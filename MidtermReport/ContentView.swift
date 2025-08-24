@@ -261,7 +261,7 @@ struct ContentView: View {
                     ("s.circle.fill", w.current.wind_dir, "風向", false),
                     ("thermometer", "\(String(format: "%.1f", feelslike))\(feelslikeUnit)", "體感溫度", true),
                     ("sunrise.fill", sunrise, "日出時間", false),
-                    ("sunset.fill", sunset, "日落", false)
+                    ("sunset.fill", sunset, "日落時間", false)
                 ]
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 22) {
                     ForEach(0..<infos.count, id: \.self) { i in
