@@ -234,43 +234,68 @@ struct ContentView: View {
                         .padding()
                     }
                     
-                    // 第二頁內容
-                    var moreInfoView: some View {
-                        VStack(spacing: 24) {
-                            Text("更多天氣資訊")
-                                .font(.title)
-                                .foregroundColor(textColor)
-                            if let w = weather {
-                                Text("風速：\(w.current.wind_kph, specifier: "%.1f") kph")
-                                    .foregroundColor(textColor)
-                                let rainMM = w.forecast?.forecastday.first?.day.totalprecip_mm ?? w.current.precip_mm ?? 0
-                                Text("雨量：\(rainMM, specifier: "%.1f") mm")
-                                    .foregroundColor(textColor)
-                                Text("風向：\(w.current.wind_dir)")
-                                    .foregroundColor(textColor)
-                                if let feelslikeC = w.current.feelslike_c {
-                                    let feelslike = showFahrenheit ? (feelslikeC * 9/5 + 32) : feelslikeC
-                                    Text("體感溫度：\(feelslike, specifier: "%.1f")\(showFahrenheit ? "°F" : "°C")")
-                                        .foregroundColor(textColor)
-                                        .onTapGesture {
-                                            showFahrenheit.toggle()
-                                        }
-                                }
-                                if let astro = w.forecast?.forecastday.first?.astro {
-                                    Text("日出：\(astro.sunrise)")
-                                        .foregroundColor(textColor)
-                                    Text("日落：\(astro.sunset)")
-                                        .foregroundColor(textColor)
-                                }
-                            }
-                            Button("返回") {
-                                withAnimation {
-                                    showMoreInfo = false
+    // 第二頁內容
+    var moreInfoView: some View {
+        VStack(spacing: 24) {
+            Text("更多天氣資訊")
+                .font(.title)
+                .foregroundColor(textColor)
+            if let w = weather {
+                let rainMM = w.forecast?.forecastday.first?.day.totalprecip_mm ?? w.current.precip_mm ?? 0
+                let feelslikeC = w.current.feelslike_c ?? w.current.temp_c
+                let feelslike = showFahrenheit ? (feelslikeC * 9/5 + 32) : feelslikeC
+                let feelslikeUnit = showFahrenheit ? "°F" : "°C"
+                let sunrise = w.forecast?.forecastday.first?.astro.sunrise ?? "--:--"
+                let sunset = w.forecast?.forecastday.first?.astro.sunset ?? "--:--"
+                // 六項資料組成 grid
+                let infos: [(icon: String, value: String, label: String, tappable: Bool)] = [
+                    ("wind", "\(String(format: "%.1f", w.current.wind_kph)) km/h", "風速", false),
+                    ("umbrella.fill", "\(String(format: "%.1f", rainMM)) mm", "雨量", false),
+                    ("s.circle.fill", w.current.wind_dir, "風向", false),
+                    ("thermometer", "\(String(format: "%.1f", feelslike))\(feelslikeUnit)", "體感溫度", true),
+                    ("sunrise.fill", sunrise, "日出時間", false),
+                    ("sunset.fill", sunset, "日落", false)
+                ]
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 22) {
+                    ForEach(0..<infos.count, id: \.self) { i in
+                        let info = infos[i]
+                        WeatherInfoItem(icon: info.icon, value: info.value, label: info.label, textColor: textColor)
+                            .onTapGesture {
+                                if info.tappable {
+                                    showFahrenheit.toggle()
                                 }
                             }
-                        }
-                        .padding()
                     }
+                }
+                .padding(.horizontal)
+            }
+            Button("返回") {
+                withAnimation { showMoreInfo = false }
+            }
+        }
+        .padding()
+    }
+
+    struct WeatherInfoItem: View {
+        let icon: String
+        let value: String
+        let label: String
+        let textColor: Color
+        var body: some View {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(textColor)
+                Text(value)
+                    .font(.headline)
+                    .foregroundColor(textColor)
+                Text(label)
+                    .font(.footnote)
+                    .foregroundColor(textColor)
+            }
+            .frame(maxWidth: .infinity, minHeight: 55)
+        }
+    }
                     
                     // 搖動動畫
                     func startShaking() {
